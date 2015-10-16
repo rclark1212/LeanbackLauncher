@@ -16,6 +16,9 @@ package app.com.example.android.leanbacklauncher;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.KeyEvent;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 /*
  * MainActivity class that loads MainFragment
@@ -29,5 +32,22 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event != null) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    //okay - y key pressed. do your favorite thing...
+                    MainFragment AppList = (MainFragment) getFragmentManager().findFragmentById(R.id.main_browse_fragment);
+                    //update the view...
+                    AppList.moveFavorite();
+
+                    //return true;
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event);
     }
 }

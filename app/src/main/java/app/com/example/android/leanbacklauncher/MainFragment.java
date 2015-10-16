@@ -14,20 +14,28 @@
 
 package app.com.example.android.leanbacklauncher;
 
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -42,6 +50,7 @@ import android.support.v17.leanback.widget.RowPresenter;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.InputDevice;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -68,6 +77,7 @@ public class MainFragment extends BrowseFragment {
     private Timer mBackgroundTimer;
     private URI mBackgroundURI;
     private BackgroundManager mBackgroundManager;
+    private AppDetail mAppSelected;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -90,11 +100,15 @@ public class MainFragment extends BrowseFragment {
             Log.d(TAG, "onDestroy: " + mBackgroundTimer.toString());
             mBackgroundTimer.cancel();
         }
+
+        //handle saving favorites here
+        AppList.saveFavoritesSharedPreferences(getActivity());
     }
 
     private void loadRows() {
         //List<Movie> list = MovieList.setupMovies();
 
+        //note that loading apps also loads favorites
         ArrayList<ArrayList<AppDetail>> apps = AppList.loadApps(getActivity());
 
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
@@ -117,14 +131,44 @@ public class MainFragment extends BrowseFragment {
 
         GridItemPresenter mGridPresenter = new GridItemPresenter();
         ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(mGridPresenter);
-        gridRowAdapter.add(getResources().getString(R.string.grid_view));
-        gridRowAdapter.add(getString(R.string.error_fragment));
         gridRowAdapter.add(getResources().getString(R.string.personal_settings));
         mRowsAdapter.add(new ListRow(gridHeader, gridRowAdapter));
 
         setAdapter(mRowsAdapter);
 
     }
+
+    //takes currently selected movie and adds it to favorite...
+    public void moveFavorite() {
+        if (mAppSelected != null) {
+            //ok - swap the favorites...
+            //store both internally (for save/restore) and in mRowAdapter
+            //first, does this label already exist in favorites list?
+            if (AppList.apps.get(AppList.CAT_FAVORITES).contains(mAppSelected)) {
+                //remove it...
+                AppList.apps.get(AppList.CAT_FAVORITES).remove(mAppSelected);
+            } else {
+                AppList.apps.get(AppList.CAT_FAVORITES).add(mAppSelected);
+            }
+
+            //get favorites list...
+            ListRow listRow = (ListRow) mRowsAdapter.get(AppList.CAT_FAVORITES);
+            ArrayObjectAdapter listRowAdapter = (ArrayObjectAdapter) listRow.getAdapter();
+
+            int index = listRowAdapter.indexOf(mAppSelected);
+            if (index >= 0) {
+                //remove it...
+                listRowAdapter.removeItems(index,1);
+            } else {
+                listRowAdapter.add(mAppSelected);
+            }
+            //And now refresh adapter...
+            mRowsAdapter.notifyArrayItemRangeChanged(AppList.CAT_FAVORITES, 1);
+
+            getView().playSoundEffect(android.view.SoundEffectConstants.CLICK);
+        }
+    }
+
 
     private void prepareBackgroundManager() {
 
@@ -198,10 +242,18 @@ public class MainFragment extends BrowseFragment {
         }
     }
 
+
     private final class ItemViewSelectedListener implements OnItemViewSelectedListener {
         @Override
         public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item,
                                    RowPresenter.ViewHolder rowViewHolder, Row row) {
+
+            if ((item instanceof AppDetail) && !isShowingHeaders()) {
+                mAppSelected = (AppDetail) item;
+            } else {
+                mAppSelected = null;
+            }
+
             if (item instanceof Movie) {
                 mBackgroundURI = ((Movie) item).getBackgroundImageURI();
                 startBackgroundTimer();
@@ -235,6 +287,7 @@ public class MainFragment extends BrowseFragment {
         mBackgroundTimer = new Timer();
         mBackgroundTimer.schedule(new UpdateBackgroundTask(), BACKGROUND_UPDATE_DELAY);
     }
+
 
     private class UpdateBackgroundTask extends TimerTask {
 
