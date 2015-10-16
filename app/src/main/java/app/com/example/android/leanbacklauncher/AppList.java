@@ -22,7 +22,7 @@ public final class AppList {
             "Favorites",
             "ShieldHUB",
             "Games",
-            "Apps",
+            "Apps"
     };
 
     public final static int CAT_FAVORITES = 0;
@@ -78,7 +78,7 @@ public final class AppList {
                         apps.get(CAT_FAVORITES).add(app);
                     }
                 }
-                
+
                 if (app.label.equals(SHUB)) {
                     apps.get(CAT_SHUB).add(app);
                 } else if ((app.ai.flags & ApplicationInfo.FLAG_IS_GAME) != 0) {

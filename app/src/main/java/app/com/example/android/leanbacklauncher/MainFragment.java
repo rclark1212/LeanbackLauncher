@@ -100,9 +100,6 @@ public class MainFragment extends BrowseFragment {
             Log.d(TAG, "onDestroy: " + mBackgroundTimer.toString());
             mBackgroundTimer.cancel();
         }
-
-        //handle saving favorites here
-        AppList.saveFavoritesSharedPreferences(getActivity());
     }
 
     private void loadRows() {
@@ -132,6 +129,7 @@ public class MainFragment extends BrowseFragment {
         GridItemPresenter mGridPresenter = new GridItemPresenter();
         ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(mGridPresenter);
         gridRowAdapter.add(getResources().getString(R.string.personal_settings));
+        gridRowAdapter.add(getResources().getString(R.string.error_fragment));
         mRowsAdapter.add(new ListRow(gridHeader, gridRowAdapter));
 
         setAdapter(mRowsAdapter);
@@ -166,6 +164,9 @@ public class MainFragment extends BrowseFragment {
             mRowsAdapter.notifyArrayItemRangeChanged(AppList.CAT_FAVORITES, 1);
 
             getView().playSoundEffect(android.view.SoundEffectConstants.CLICK);
+
+            //handle saving favorites here
+            AppList.saveFavoritesSharedPreferences(getActivity());
         }
     }
 
@@ -234,6 +235,9 @@ public class MainFragment extends BrowseFragment {
                 if (((String) item).indexOf(getString(R.string.error_fragment)) >= 0) {
                     Intent intent = new Intent(getActivity(), BrowseErrorActivity.class);
                     startActivity(intent);
+                } else if (((String) item).indexOf(getString(R.string.personal_settings)) >= 0) {
+                    //open up settings
+                    startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS), 0);
                 } else {
                     Toast.makeText(getActivity(), ((String) item), Toast.LENGTH_SHORT)
                             .show();
