@@ -111,17 +111,17 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
         mSelectedMovie = (Movie) getActivity()
                 .getIntent().getSerializableExtra(DetailsActivity.MOVIE);
 
-        List<Movie> movies = MovieList.list;
+        //List<Movie> movies = AppList.list;
 
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new CardPresenter());
-
+    /*
         for (int j = 0; j < movies.size(); j++) {
             mItems.add(movies.get(j));
             if (mSelectedMovie.getTitle().contentEquals(movies.get(j).getTitle())) {
                 mCurrentItem = j;
             }
         }
-
+*/
         mHandler = new Handler();
 
         setBackgroundType(BACKGROUND_TYPE);

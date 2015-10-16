@@ -30,7 +30,7 @@ public class CardPresenter extends Presenter {
     private static final String TAG = "CardPresenter";
 
     private static int CARD_WIDTH = 313;
-    private static int CARD_HEIGHT = 176;
+    private static int CARD_HEIGHT = 186;
     private static int sSelectedBackgroundColor;
     private static int sDefaultBackgroundColor;
     private Drawable mDefaultCardImage;
@@ -74,7 +74,7 @@ public class CardPresenter extends Presenter {
         if (app.icon != null) {
             cardView.setTitleText(app.label);
             cardView.setContentText(app.name);
-            cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);   //TODO - fix
+            cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);
             if (app.banner != null)
                 cardView.setMainImage(app.banner);
             else

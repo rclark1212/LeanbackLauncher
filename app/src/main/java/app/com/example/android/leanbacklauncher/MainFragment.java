@@ -16,7 +16,6 @@ package app.com.example.android.leanbacklauncher;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -33,7 +32,6 @@ import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.HeaderItem;
-import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
@@ -41,7 +39,6 @@ import android.support.v17.leanback.widget.OnItemViewSelectedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -95,62 +92,16 @@ public class MainFragment extends BrowseFragment {
         }
     }
 
-    private PackageManager manager;
-    private ArrayList<ArrayList<AppDetail>> apps;
-    private void loadApps() {
-        manager = getActivity().getPackageManager();
-        apps = new ArrayList<ArrayList<AppDetail>>();
-
-        Intent intend = new Intent(Intent.ACTION_MAIN, null);
-        intend.addCategory(Intent.CATEGORY_LAUNCHER);
-
-        for (int i = 0; i < NUM_ROWS; i++) {
-            //set up base array list...
-            apps.add(i, new ArrayList<AppDetail>());
-
-            if (i < 3) {
-                //don't do anything.
-            } else {
-                //games in row 2, other apps in row3
-                List<ResolveInfo> availableActivities = manager.queryIntentActivities(intend, 0);
-                for (int j = 0; j < availableActivities.size(); j++) {
-                    ResolveInfo ri = availableActivities.get(j);
-
-                    AppDetail app = new AppDetail();
-                    app.label = ri.loadLabel(manager);
-                    app.name = ri.activityInfo.packageName;
-                    app.icon = ri.activityInfo.loadIcon(manager);
-                    app.banner = ri.activityInfo.loadBanner(manager);
-                    try {
-                        app.ai = manager.getApplicationInfo(app.name.toString(), PackageManager.GET_META_DATA);
-                        app.res = manager.getResourcesForApplication(ri.activityInfo.packageName);
-
-                        if (app.label.equals("SHIELD Hub")) {
-                          apps.get(1).add(app);
-                        } else if ((app.ai.flags & ApplicationInfo.FLAG_IS_GAME) != 0) {
-                            apps.get(2).add(app);
-                        } else {
-                            apps.get(3).add(app);
-                        }
-
-                    } catch (PackageManager.NameNotFoundException e) {
-
-                    }
-                }
-            }
-        }
-    }
-
     private void loadRows() {
         //List<Movie> list = MovieList.setupMovies();
 
-        loadApps();
+        ArrayList<ArrayList<AppDetail>> apps = AppList.loadApps(getActivity());
 
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         CardPresenter cardPresenter = new CardPresenter();
 
         int i;
-        for (i = 0; i < NUM_ROWS; i++) {
+        for (i = 0; i < AppList.APP_CATEGORY.length; i++) {
             //if (i != 0) {
             //    Collections.shuffle(list);
             //}
@@ -158,7 +109,7 @@ public class MainFragment extends BrowseFragment {
             for (int j = 0; j < apps.get(i).size(); j++) {
                 listRowAdapter.add(apps.get(i).get(j));
             }
-            HeaderItem header = new HeaderItem(i, MovieList.MOVIE_CATEGORY[i]);
+            HeaderItem header = new HeaderItem(i, AppList.APP_CATEGORY[i]);
             mRowsAdapter.add(new ListRow(header, listRowAdapter));
         }
 
@@ -221,7 +172,11 @@ public class MainFragment extends BrowseFragment {
                 AppDetail app = (AppDetail) item;
                 Log.d(TAG, "Item: " + item.toString());
                 Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
-                MainFragment.this.startActivity(i);
+                if (i == null) {
+                    Toast.makeText(getActivity(), "Yikes! Can't find a launch activity", Toast.LENGTH_LONG).show();
+                } else {
+                    MainFragment.this.startActivity(i);
+                }
                 /*
                 Intent intent = new Intent(getActivity(), DetailsActivity.class);
                 intent.putExtra(DetailsActivity.MOVIE, movie);

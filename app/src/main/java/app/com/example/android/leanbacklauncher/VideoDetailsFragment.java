@@ -187,8 +187,9 @@ public class VideoDetailsFragment extends DetailsFragment {
     }
 
     private void setupMovieListRow() {
+        /*
         String subcategories[] = {getString(R.string.related_movies)};
-        List<Movie> list = MovieList.list;
+        List<Movie> list = AppList.list;
 
         Collections.shuffle(list);
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(new CardPresenter());
@@ -197,7 +198,7 @@ public class VideoDetailsFragment extends DetailsFragment {
         }
 
         HeaderItem header = new HeaderItem(0, subcategories[0]);
-        mAdapter.add(new ListRow(header, listRowAdapter));
+        mAdapter.add(new ListRow(header, listRowAdapter)); */
     }
 
     private void setupMovieListRowPresenter() {
