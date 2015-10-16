@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -216,13 +217,24 @@ public class MainFragment extends BrowseFragment {
             if (item instanceof AppDetail) {
                 AppDetail app = (AppDetail) item;
                 Log.d(TAG, "Item: " + item.toString());
+
+                //launch it...
+                ComponentName name=new ComponentName(app.name.toString(), app.name2.toString());
+                Intent i=new Intent(Intent.ACTION_MAIN);
+
+                i.addCategory(Intent.CATEGORY_LAUNCHER);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                i.setComponent(name);
+
+                startActivity(i);
+                /*
                 Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
                 if (i == null) {
                     Toast.makeText(getActivity(), "Yikes! Can't find a launch activity", Toast.LENGTH_LONG).show();
                 } else {
                     MainFragment.this.startActivity(i);
                 }
-                /*
+
                 Intent intent = new Intent(getActivity(), DetailsActivity.class);
                 intent.putExtra(DetailsActivity.MOVIE, movie);
 

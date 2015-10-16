@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 public class AppDetail {
     CharSequence label;
     CharSequence name;
+    CharSequence name2;
     Drawable icon;
     Resources res;
     ApplicationInfo ai;

@@ -13,9 +13,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//TODO - hook up settings (no leanback launcher intent)
-//TODO - figure out shieldhub and netflix
-//TODO - add favorites add/remove (and store in prefs)
+//TODO - figure out shieldhub (look at the oem intents)
+//TODO - figure out search
+//TODO - make launcher in manifest (look at the pano manifest)
+//TODO - add a friend's recommendation row (like circles - it gets shared across the group)
 
 public final class AppList {
     public static final String APP_CATEGORY[] = {
@@ -59,6 +60,7 @@ public final class AppList {
             AppDetail app = new AppDetail();
             app.label = ri.loadLabel(manager);
             app.name = ri.activityInfo.packageName;
+            app.name2 = ri.activityInfo.name;
             app.icon = ri.activityInfo.loadIcon(manager);
             app.banner = ri.activityInfo.loadBanner(manager);
             //hmm - for some apps, this not getting us data...
