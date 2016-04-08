@@ -39,8 +39,8 @@ import java.util.Set;
 public final class AppList {
     public static final String APP_CATEGORY[] = {
             "Favorites",
-            "Friends",
-            "Recommendations",
+          /*  "Friends",
+            "Recommendations", */
             "ShieldHUB",
             "Games",
             "Apps",
@@ -48,10 +48,10 @@ public final class AppList {
     };
 
     public final static int CAT_FAVORITES = 0;
-    public final static int CAT_SHUB = 3;
-    public final static int CAT_GAMES = 4;
-    public final static int CAT_APPS = 5;
-    public final static int CAT_TABAPPS = 6;
+    public final static int CAT_SHUB = 1;
+    public final static int CAT_GAMES = 2;
+    public final static int CAT_APPS = 3;
+    public final static int CAT_TABAPPS = 4;
 
     public final static String SHUB = "SHIELD Hub";
 
