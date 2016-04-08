@@ -23,13 +23,16 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -48,12 +51,14 @@ import android.support.v17.leanback.widget.OnItemViewSelectedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -212,6 +217,8 @@ public class MainFragment extends BrowseFragment {
     }
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
+        private String m_Text = "";
+
         @Override
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
@@ -221,14 +228,24 @@ public class MainFragment extends BrowseFragment {
                 Log.d(TAG, "Item: " + item.toString());
 
                 //launch it...
-                ComponentName name=new ComponentName(app.name.toString(), app.name2.toString());
-                Intent i=new Intent(Intent.ACTION_MAIN);
+                //Show as an example here how you can filter stuff out. Lets prevent any app with the name N or the Play Store from launching...
 
-                i.addCategory(Intent.CATEGORY_LAUNCHER);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                i.setComponent(name);
+                //FIXME - warn on "Play Store"
+                //FIXME - disable apps that start with N - warn with Karthik toast
+                if (app.label.equals("Play Store")) {
+                    Toast.makeText(getContext(), "Karthik doesn't want you using play store", Toast.LENGTH_SHORT).show();
+                } else if (app.label.charAt(0) == 'N') {
+                    Toast.makeText(getContext(), "Karthik doesn't like apps that start with N", Toast.LENGTH_SHORT).show();
+                } else {
+                    ComponentName name = new ComponentName(app.name.toString(), app.name2.toString());
+                    Intent i = new Intent(Intent.ACTION_MAIN);
 
-                startActivity(i);
+                    i.addCategory(Intent.CATEGORY_LAUNCHER);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                    i.setComponent(name);
+
+                    startActivity(i);
+                }
                 /*
                 Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
                 if (i == null) {
@@ -251,7 +268,34 @@ public class MainFragment extends BrowseFragment {
                     startActivity(intent);
                 } else if (((String) item).indexOf(getString(R.string.personal_settings)) >= 0) {
                     //open up settings
-                    startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS), 0);
+                    //FIXME - add password here
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), AlertDialog.THEME_HOLO_DARK);
+                    builder.setTitle("Karthik's password (hint karthikrules)");
+
+                    // Set up the input
+                    final EditText input = new EditText(getContext());
+                    // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                    input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                    builder.setView(input);
+
+                    // Set up the buttons
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            m_Text = input.getText().toString();
+                            if (m_Text.equals("karthikrules")) {
+                                startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS), 0);
+                            }
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder.show();
                 } else {
                     Toast.makeText(getActivity(), ((String) item), Toast.LENGTH_SHORT)
                             .show();
