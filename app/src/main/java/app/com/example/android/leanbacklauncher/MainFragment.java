@@ -65,7 +65,7 @@ import com.bumptech.glide.request.target.SimpleTarget;
 public class MainFragment extends BrowseFragment {
     private static final String TAG = "MainFragment";
 
-    private static final int BACKGROUND_UPDATE_DELAY = 300;
+    private static final int BACKGROUND_UPDATE_DELAY = 30; //was 300
     private static final int GRID_ITEM_WIDTH = 200;
     private static final int GRID_ITEM_HEIGHT = 200;
     private static final int NUM_ROWS = 4;
@@ -77,6 +77,7 @@ public class MainFragment extends BrowseFragment {
     private DisplayMetrics mMetrics;
     private Timer mBackgroundTimer;
     private URI mBackgroundURI;
+    private Drawable mBackgroundDraw;
     private BackgroundManager mBackgroundManager;
     private AppDetail mAppSelected;
 
@@ -130,6 +131,7 @@ public class MainFragment extends BrowseFragment {
         GridItemPresenter mGridPresenter = new GridItemPresenter();
         ArrayObjectAdapter gridRowAdapter = new ArrayObjectAdapter(mGridPresenter);
         gridRowAdapter.add(getResources().getString(R.string.personal_settings));
+        gridRowAdapter.add("Help");
         gridRowAdapter.add(getResources().getString(R.string.error_fragment));
         mRowsAdapter.add(new ListRow(gridHeader, gridRowAdapter));
 
@@ -270,11 +272,26 @@ public class MainFragment extends BrowseFragment {
                 mAppSelected = null;
             }
 
+            mBackgroundDraw = null;
+            mBackgroundURI = null;
+
             if (item instanceof Movie) {
                 mBackgroundURI = ((Movie) item).getBackgroundImageURI();
-                startBackgroundTimer();
             }
 
+            //if you want to load a drawable for a background...
+            /*
+            if (item instanceof AppDetail) {
+                if (row.getId() == AppList.CAT_APPS) {
+                    mBackgroundDraw = getActivity().getDrawable(R.drawable.launch_apps);
+                } else if (row.getId() == AppList.CAT_GAMES) {
+                    mBackgroundDraw = getActivity().getDrawable(R.drawable.launch_games);
+                } else {
+                    mBackgroundDraw = getActivity().getDrawable(R.drawable.launch_other);
+                }
+            }
+            startBackgroundTimer();
+            */
         }
     }
 
@@ -314,6 +331,8 @@ public class MainFragment extends BrowseFragment {
                 public void run() {
                     if (mBackgroundURI != null) {
                         updateBackground(mBackgroundURI.toString());
+                    } else if (mBackgroundDraw != null) {
+                        mBackgroundManager.setDrawable(mBackgroundDraw);
                     }
                 }
             });

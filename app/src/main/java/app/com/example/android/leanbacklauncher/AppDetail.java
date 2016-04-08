@@ -15,4 +15,6 @@ public class AppDetail {
     Resources res;
     ApplicationInfo ai;
     Drawable banner;
+    Boolean bIsApp;
+    Boolean bIsTablet;
 }

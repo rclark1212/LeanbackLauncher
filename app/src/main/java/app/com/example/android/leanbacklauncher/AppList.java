@@ -1,5 +1,6 @@
 package app.com.example.android.leanbacklauncher;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,25 +17,47 @@ import java.util.Set;
 //TODO - figure out shieldhub (look at the oem intents)
 //TODO - figure out search
 //TODO - make launcher in manifest (look at the pano manifest)
-//TODO - add a friend's recommendation row (like circles - it gets shared across the group)
+//TODO - add a friend's recommendation row (like circles - it gets shared across the group). second line is "from"
+//TODO - add following rows
+//  Tablet apps (if any exist)
+//  Friends (friends recommendations). Use hack netstore for load/save
+//  Recommendations
+//TODO - add config page to show/hide rows, turn off home screen
+//TODO - add generic category backdrops for categories
+//TODO - add content capability for rows
+//TODO - add search
+//TODO - add help/about button to give shortcut key instructions and simple summary
+//TODO - auto-hide presentation of empty rows
+
+//To make this an app, add the .LEANBACK_LAUNCHER to the maniifest
+//<category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+//To make this a launcher, add the .HOME, .DEFAULT to the manifest
+//<category android:name="android.intent.category.HOME" />
+//<category android:name="android.intent.category.DEFAULT" />
+
 
 public final class AppList {
     public static final String APP_CATEGORY[] = {
             "Favorites",
+            "Friends",
+            "Recommendations",
             "ShieldHUB",
             "Games",
-            "Apps"
+            "Apps",
+            "TabletApps"
     };
 
     public final static int CAT_FAVORITES = 0;
-    public final static int CAT_SHUB = 1;
-    public final static int CAT_GAMES = 2;
-    public final static int CAT_APPS = 3;
+    public final static int CAT_SHUB = 3;
+    public final static int CAT_GAMES = 4;
+    public final static int CAT_APPS = 5;
+    public final static int CAT_TABAPPS = 6;
 
     public final static String SHUB = "SHIELD Hub";
 
     private static PackageManager manager;
     public static ArrayList<ArrayList<AppDetail>> apps;
+    public static AppDetail mLeanbackLauncher;
 
     public static ArrayList<ArrayList<AppDetail>> loadApps(Context ctx) {
         manager = ctx.getPackageManager();
@@ -42,55 +65,91 @@ public final class AppList {
 
         Set<String> favorites = loadFavoritesSharedPreferences(ctx);
 
-        Intent intend = new Intent(Intent.ACTION_MAIN, null);
-        intend.addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
-
         //first set up each row with an array list
         for (int i = 0; i < APP_CATEGORY.length; i++) {
             //set up base array list...
             apps.add(i, new ArrayList<AppDetail>());
         }
 
-        //next, set up apps, shieldhub, games
-        List<ResolveInfo> availableActivities = manager.queryIntentActivities(intend, 0);
-        //loop through all apps...
-        for (int j = 0; j < availableActivities.size(); j++) {
-            ResolveInfo ri = availableActivities.get(j);
+        //Okay - loop through getting intents twice. First to find leanback apps,
+        //second, find tablet apps...
+        for (int apptype = 0; apptype < 2; apptype++) {
 
-            AppDetail app = new AppDetail();
-            app.label = ri.loadLabel(manager);
-            app.name = ri.activityInfo.packageName;
-            app.name2 = ri.activityInfo.name;
-            app.icon = ri.activityInfo.loadIcon(manager);
-            app.banner = ri.activityInfo.loadBanner(manager);
-            //hmm - for some apps, this not getting us data...
-            if (app.banner == null) {
-                //go in deeper to find different activities that can be launched.
+            Intent intend = new Intent(Intent.ACTION_MAIN, null);
+
+            if (apptype == 1) {
+                intend.addCategory(Intent.CATEGORY_LAUNCHER);
+            } else {
+                intend.addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
             }
 
-            if (app.label.equals("LeanbackLauncher")) break;    //don't add this app
+            //next, set up apps, shieldhub, games
+            List<ResolveInfo> availableActivities = manager.queryIntentActivities(intend, 0);
+            //loop through all apps...
+            for (int j = 0; j < availableActivities.size(); j++) {
+                ResolveInfo ri = availableActivities.get(j);
 
-            try {
-                app.ai = manager.getApplicationInfo(app.name.toString(), PackageManager.GET_META_DATA);
-                app.res = manager.getResourcesForApplication(ri.activityInfo.packageName);
+                AppDetail app = new AppDetail();
+                app.label = ri.loadLabel(manager);
+                app.name = ri.activityInfo.packageName;
+                app.name2 = ri.activityInfo.name;
+                app.icon = ri.activityInfo.loadIcon(manager);
+                app.banner = ri.activityInfo.loadBanner(manager);
+                app.bIsApp = true;
+                app.bIsTablet = false;
 
-                //check for favorites...
-                if (favorites != null) {
-                    if (favorites.contains(app.label.toString())) {
-                        apps.get(CAT_FAVORITES).add(app);
+                //hmm - for some apps, this not getting us data...
+                if (app.banner == null) {
+                    //go in deeper to find different activities that can be launched.
+                }
+
+                try {
+                    app.ai = manager.getApplicationInfo(app.name.toString(), PackageManager.GET_META_DATA);
+                    app.res = manager.getResourcesForApplication(ri.activityInfo.packageName);
+
+                    if (app.label.equals("LeanbackLauncher")) {
+                        mLeanbackLauncher = app;
+                        break;    //don't add this app (but save it off)
                     }
+
+                    //if we are going through tablet apps, lets punt if we already have it in leanback...
+                    if (apptype == 1) {
+                        Boolean bFound = false;
+                        for (int k = 0; k < apps.get(CAT_APPS).size(); k++)
+                        {
+                            if (apps.get(CAT_APPS).get(k).name.equals(app.name)) {
+                                bFound = true;
+                                break;
+                            }
+                        }
+
+                        if (bFound == true)
+                            break;
+
+                        app.bIsTablet = true;
+                    }
+
+                    //check for favorites...
+                    if (favorites != null) {
+                        if (favorites.contains(app.label.toString())) {
+                            apps.get(CAT_FAVORITES).add(app);
+                        }
+                    }
+
+                    if (app.label.equals(SHUB)) {
+                        if (apptype == 0)
+                            apps.get(CAT_SHUB).add(app);
+                    } else if ((app.ai.flags & ApplicationInfo.FLAG_IS_GAME) != 0) {
+                        apps.get(CAT_GAMES).add(app);
+                    } else if (apptype == 0){
+                        apps.get(CAT_APPS).add(app);
+                    } else {
+                        apps.get(CAT_TABAPPS).add(app);
+                    }
+
+                } catch (PackageManager.NameNotFoundException e) {
+
                 }
-
-                if (app.label.equals(SHUB)) {
-                    apps.get(CAT_SHUB).add(app);
-                } else if ((app.ai.flags & ApplicationInfo.FLAG_IS_GAME) != 0) {
-                    apps.get(CAT_GAMES).add(app);
-                } else {
-                    apps.get(CAT_APPS).add(app);
-                }
-
-            } catch (PackageManager.NameNotFoundException e) {
-
             }
         }
 
