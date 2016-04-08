@@ -234,8 +234,8 @@ public class MainFragment extends BrowseFragment {
                 //FIXME - disable apps that start with N - warn with Karthik toast
                 if (app.label.equals("Play Store")) {
                     Toast.makeText(getContext(), "Karthik doesn't want you using play store", Toast.LENGTH_SHORT).show();
-                } else if (app.label.charAt(0) == 'N') {
-                    Toast.makeText(getContext(), "Karthik doesn't like apps that start with N", Toast.LENGTH_SHORT).show();
+                } else if (app.label.charAt(0) == 'Y') {
+                    Toast.makeText(getContext(), "Karthik doesn't like apps that start with Y", Toast.LENGTH_SHORT).show();
                 } else {
                     ComponentName name = new ComponentName(app.name.toString(), app.name2.toString());
                     Intent i = new Intent(Intent.ACTION_MAIN);

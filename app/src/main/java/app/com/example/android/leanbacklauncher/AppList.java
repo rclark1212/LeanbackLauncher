@@ -109,7 +109,7 @@ public final class AppList {
 
                     if (app.label.equals("LeanbackLauncher")) {
                         mLeanbackLauncher = app;
-                        break;    //don't add this app (but save it off)
+                        continue;    //don't add this app (but save it off)
                     }
 
                     //if we are going through tablet apps, lets punt if we already have it in leanback...
